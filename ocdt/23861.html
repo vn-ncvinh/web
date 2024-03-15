@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCDT 23861 Generator</title>
+</head>
+<body>
+    <h2>OCDT 23861 Generator</h2>
+    <input type="file" id="fileInput">
+    <button onclick="processFile()">Generator</button>
+
+    <script>
+        function processFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const replacements = [
+                    { originalHex: 'E993979618925676C952968757567656', replacementHex: '25839796D48256760542968757567656' }
+                ];
+                let fileContent = new Uint8Array(event.target.result);
+
+                // Apply all replacements
+                for (const rep of replacements) {
+                    fileContent = replaceHexSequence(fileContent, rep.originalHex, rep.replacementHex);
+                }
+
+                // Create a Blob with the modified content
+                const blob = new Blob([fileContent], { type: file.type });
+
+                // Create a temporary anchor element
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'ocdt_23861.img'; // Fixed output file name
+
+                // Simulate click to trigger download
+                link.click();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function replaceHexSequence(buffer, originalHex, replacementHex) {
+            const originalSequence = hexStringToByteArray(originalHex);
+            const replacementSequence = hexStringToByteArray(replacementHex);
+            for (let i = 0; i < buffer.length - originalSequence.length; i++) {
+                let found = true;
+                for (let j = 0; j < originalSequence.length; j++) {
+                    if (buffer[i + j] !== originalSequence[j]) {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found) {
+                    buffer.set(replacementSequence, i);
+                    i += replacementSequence.length - 1;
+                }
+            }
+            return buffer;
+        }
+
+        function hexStringToByteArray(hexString) {
+            const bytes = [];
+            for (let i = 0; i < hexString.length; i += 2) {
+                bytes.push(parseInt(hexString.substr(i, 2), 16));
+            }
+            return bytes;
+        }
+    </script>
+</body>
+</html>
